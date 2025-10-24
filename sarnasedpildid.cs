@@ -5,157 +5,297 @@ using System.Linq;
 using System.Windows.Forms;
 
 namespace KolmRakendust
+
 {
     public class MatchingGame
     {
-        private TableLayoutPanel tableLayoutPanel;
-        private List<string> icons;
+        private Label[] labels;
+        private string[] icons;
         private Label firstClicked = null;
         private Label secondClicked = null;
         private Random random = new Random();
-        private Timer timer;
-        private Control parentControl;
-        private int gridSize;
+        private System.Windows.Forms.Timer flipTimer; // kaartide pööramise taimer
+        private System.Windows.Forms.Timer gameTimer; // mängu aja taimer
+        private int matchedPairs = 0;
+        private Form form;
+        private int points = 0;
+        private Label timeLabel;
+        private Button level1Btn;
+        private Button level2Btn;
+        private Button level3Btn;
+        private int timeLeftSeconds;
+        private bool gameActive = false;
 
-        public MatchingGame(Control parent, int gridSize)
+        public MatchingGame(Form form)
         {
-            parentControl = parent;
-            this.gridSize = gridSize;
-
-            // Loome mänguvälja
-            tableLayoutPanel = new TableLayoutPanel();
-            tableLayoutPanel.RowCount = gridSize;
-            tableLayoutPanel.ColumnCount = gridSize;
-            tableLayoutPanel.Size = new Size(250, 250);
-            tableLayoutPanel.BackColor = Color.CornflowerBlue;
-            tableLayoutPanel.CellBorderStyle = TableLayoutPanelCellBorderStyle.Inset;
-            parentControl.Controls.Add(tableLayoutPanel);
-            tableLayoutPanel.BringToFront();
-
-            // Loo ikoonid
-            GenerateIcons();
-
-            // Ajastaja paaride ajutiseks näitamiseks
-            timer = new Timer();
-            timer.Interval = 750;
-            timer.Tick += Timer_Tick;
-
-            // Ridade ja veergude proportsioonid
-            for (int i = 0; i < gridSize; i++)
-            {
-                tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F / gridSize));
-                tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F / gridSize));
-            }
-
-            AddIconsToSquares();
+            this.form = form;
+            InitializeGame();
         }
 
-        private void GenerateIcons()
+        private void InitializeGame()
         {
-            icons = new List<string>();
-            string possibleIcons = "!@#$%^&*()NZvbklopqwerty";
+            form.Text = "Matemaatiline mäng";
 
-            int neededPairs = (gridSize * gridSize) / 2;
-            for (int i = 0; i < neededPairs; i++)
+            // aja näitamine: tunnid ja minutid
+            timeLabel = new Label
             {
-                string symbol = possibleIcons[random.Next(possibleIcons.Length)].ToString();
-                icons.Add(symbol);
-                icons.Add(symbol);
-            }
+                Width = 200,
+                Height = 30,
+                Text = "Aeg: 00:00",
+                Font = new Font("Arial", 12, FontStyle.Bold),
+                Location = new Point(150, 20)
+            };
+            form.Controls.Add(timeLabel);
+
+            level1Btn = new Button
+            {
+                Text = "Tase 1",
+                Location = new Point(370, 20),
+                Width = 80
+            };
+            level1Btn.Click += (s, e) => StartLevel(1);
+            form.Controls.Add(level1Btn);
+
+            level2Btn = new Button
+            {
+                Text = "Tase 2",
+                Location = new Point(460, 20),
+                Width = 80
+            };
+            level2Btn.Click += (s, e) => StartLevel(2);
+            form.Controls.Add(level2Btn);
+
+            level3Btn = new Button
+            {
+                Text = "Tase 3",
+                Location = new Point(550, 20),
+                Width = 80
+            };
+            level3Btn.Click += (s, e) => StartLevel(3);
+            form.Controls.Add(level3Btn);
+
+            // taimerid
+            flipTimer = new System.Windows.Forms.Timer
+            {
+                Interval = 750
+            };
+            flipTimer.Tick += FlipTimer_Tick;
+
+            gameTimer = new System.Windows.Forms.Timer
+            {
+                Interval = 1000
+            };
+            gameTimer.Tick += GameTimer_Tick;
+
+            // alustame esimese tasemega
+            StartLevel(1);
         }
 
-        private void AddIconsToSquares()
+        private void StartLevel(int level)
         {
-            int fontSize = Math.Max(12, 64 / gridSize * 3);
-
-            foreach (int row in Enumerable.Range(0, gridSize))
+            // eemaldame vanad kaardid, kui olemas
+            if (labels != null)
             {
-                foreach (int col in Enumerable.Range(0, gridSize))
+                foreach (var l in labels)
                 {
-                    Label label = new Label();
-                    label.Dock = DockStyle.Fill;
-                    label.TextAlign = ContentAlignment.MiddleCenter;
-                    label.Font = new Font("Webdings", fontSize, FontStyle.Bold);
-                    label.ForeColor = tableLayoutPanel.BackColor;
-                    label.Click += Label_Click;
-                    tableLayoutPanel.Controls.Add(label, col, row);
+                    if (l != null && form.Controls.Contains(l))
+                        form.Controls.Remove(l);
                 }
             }
 
-            foreach (Control control in tableLayoutPanel.Controls)
+            firstClicked = null;
+            secondClicked = null;
+            matchedPairs = 0;
+            points = 0;
+            gameActive = true;
+
+            int pairs;
+            switch (level)
             {
-                Label iconLabel = control as Label;
-                if (iconLabel != null)
+                case 1:
+                    pairs = 9; // 8 kaarti
+                    timeLeftSeconds = 30;
+                    break;
+                case 2:
+                    pairs = 12; // 12 kaarti
+                    timeLeftSeconds = 50;
+                    break;
+                case 3:
+                default:
+                    pairs = 15; // 16 kaarti
+                    timeLeftSeconds = 50;
+                    break;
+            }
+
+            // kaardid
+            var list = new List<string>();
+            for (int i = 1; i <= pairs; i++)
+            {
+                list.Add(i.ToString());
+                list.Add(i.ToString());
+            }
+            icons = list.ToArray();
+            ShuffleIcons();
+
+            int totalCards = pairs * 2;
+            labels = new Label[totalCards];
+
+            int startX = 150;
+            int startY = 70; // kaardid algavad siit
+            int x = startX;
+            int y = startY;
+            int columns = 5; // veerud
+            int spacing = 110;
+
+            for (int i = 0; i < labels.Length; i++)
+            {
+                labels[i] = new Label
                 {
-                    int randomNumber = random.Next(icons.Count);
-                    iconLabel.Text = icons[randomNumber];
-                    icons.RemoveAt(randomNumber);
+                    Width = 100,
+                    Height = 100,
+                    Text = "?",
+                    Font = new Font("Arial", 24, FontStyle.Bold),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    BackColor = Color.LightGray,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Location = new Point(x, y)
+                };
+
+                labels[i].Click += Label_Click;
+                form.Controls.Add(labels[i]);
+
+                x += spacing;
+                if ((i + 1) % columns == 0)
+                {
+                    x = startX;
+                    y += spacing;
                 }
+            }
+
+            UpdateTimeLabel();
+            gameTimer.Start();
+        }
+
+        private void ShuffleIcons()
+        {
+            for (int i = 0; i < icons.Length; i++)
+            {
+                int j = random.Next(icons.Length);
+                string temp = icons[i];
+                icons[i] = icons[j];
+                icons[j] = temp;
             }
         }
 
         private void Label_Click(object sender, EventArgs e)
         {
-            if (timer.Enabled) return;
 
-            Label clickedLabel = sender as Label;
-            if (clickedLabel == null) return;
-
-            if (clickedLabel.ForeColor == Color.Black)
+            if (!gameActive || (flipTimer != null && flipTimer.Enabled))
                 return;
+
+            var clickedLabel = sender as Label;
+            if (clickedLabel == null)
+                return;
+
+            if (clickedLabel.Text != "?")
+                return;
+
+            int index = Array.IndexOf(labels, clickedLabel);
+            if (index < 0 || index >= icons.Length)
+                return;
+
+            clickedLabel.Text = icons[index];
 
             if (firstClicked == null)
             {
                 firstClicked = clickedLabel;
-                firstClicked.ForeColor = Color.Black;
                 return;
             }
 
             secondClicked = clickedLabel;
-            secondClicked.ForeColor = Color.Black;
-
-            CheckForWinner();
 
             if (firstClicked.Text == secondClicked.Text)
             {
-                firstClicked = null;
-                secondClicked = null;
+                matchedPairs++;
+                points += 10;
+                firstClicked.BackColor = Color.LightGreen;
+                secondClicked.BackColor = Color.LightGreen;
+                ResetClickedLabels();
+
+                if (matchedPairs == icons.Length / 2)
+                {
+                    gameTimer.Stop();
+                    gameActive = false;
+                    MessageBox.Show($"Võit! Punktid: {points}");
+                }
             }
             else
             {
-                timer.Start();
+                flipTimer.Start();
             }
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void FlipTimer_Tick(object sender, EventArgs e)
         {
-            timer.Stop();
-            firstClicked.ForeColor = tableLayoutPanel.BackColor;
-            secondClicked.ForeColor = tableLayoutPanel.BackColor;
+            flipTimer.Stop();
+
+            if (firstClicked != null)
+                firstClicked.Text = "?";
+            if (secondClicked != null)
+                secondClicked.Text = "?";
+
+            ResetClickedLabels();
+        }
+
+        private void GameTimer_Tick(object sender, EventArgs e)
+        {
+            timeLeftSeconds--;
+            UpdateTimeLabel();
+
+            if (timeLeftSeconds <= 0)
+            {
+                gameTimer.Stop();
+                gameActive = false;
+                // mäng läbi
+                MessageBox.Show("Aeg on otsas!");
+            }
+        }
+
+        private void UpdateTimeLabel()
+        {
+            int minutes = timeLeftSeconds / 60;
+            int seconds = timeLeftSeconds % 60;
+            timeLabel.Text = $"Aeg: {minutes:00}:{seconds:00}";
+        }
+
+        private void ResetClickedLabels()
+        {
             firstClicked = null;
             secondClicked = null;
         }
-
-        private void CheckForWinner()
+        public void Show()
         {
-            foreach (Control control in tableLayoutPanel.Controls)
+            level1Btn.Visible = true;
+            level2Btn.Visible = true;
+            level3Btn.Visible = true;
+            timeLabel.Visible = true;
+            foreach (var label in labels)
             {
-                Label iconLabel = control as Label;
-                if (iconLabel != null && iconLabel.ForeColor == tableLayoutPanel.BackColor)
-                    return;
+                label.Visible = true;
             }
-
-            MessageBox.Show("Tubli! Leidsid kõik paarid!", "Mäng läbi");
         }
 
-        public void Remove()
+        // Hide game elements
+        public void Hide()
         {
-            parentControl.Controls.Remove(tableLayoutPanel);
-        }
-
-        public void SetLocation(int x, int y)
-        {
-            tableLayoutPanel.Location = new Point(x + 20, y);
+            level1Btn.Visible = false;
+            level2Btn.Visible = false;
+            level3Btn.Visible = false;
+            timeLabel.Visible = false;
+            foreach (var label in labels)
+            {
+                label.Visible = false;
+            }
         }
     }
 }

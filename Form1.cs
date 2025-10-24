@@ -18,6 +18,7 @@ namespace KolmRakendust
         private pildiVaatamise pildiVaataja;
         private MathQuiz mathQuiz;
         private MatchingGame matchingGame;
+      
 
         public Form1()
         {
@@ -30,7 +31,7 @@ namespace KolmRakendust
             tree.AfterSelect += Tree_AfterSelect;
             TreeNode tn = new TreeNode("Elemendid");
             tn.Nodes.Add(new TreeNode("Pildi vaatamise programm"));
-            tn.Nodes.Add(new TreeNode("Matemaatiline äraarvamismäng"));
+            tn.Nodes.Add(new TreeNode("Matemaatiline test"));
             tn.Nodes.Add(new TreeNode("Sarnaste piltide leidmise mäng"));
             tn.Nodes.Add(new TreeNode("Välja"));
 
