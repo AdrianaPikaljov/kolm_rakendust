@@ -5,7 +5,6 @@ using System.Linq;
 using System.Windows.Forms;
 
 namespace KolmRakendust
-
 {
     public class MatchingGame
     {
@@ -26,6 +25,16 @@ namespace KolmRakendust
         private int timeLeftSeconds;
         private bool gameActive = false;
 
+        // Define the list of Webdings symbols
+        private List<string> webdingsSymbols = new List<string>
+        {
+            "\uF112", "\uF121", "\uF02C", "\uF02A", "\uF023", "\uF07F", "\uF033", "\uF02A", "\uF031", "\uF037",
+            "\uF030", "\uF031", "\uF034", "\uF07F", "\uF033", "\uF028", "\uF03B", "\uF033", "\uF032",
+            "\uF0C5", "\uF07E", "\uF0B3", "\uF051", "\uF02F", "\uF034", "\uF0A0", "\uF022", "\uF042", "\uF055",
+            "\uF060", "\uF064", "\uF072", "\uF0F4", "\uF083", "\uF091", "\uF0D2", "\uF0D4", "\uF0C2", "\uF0F0",
+            "\uF091", "\uF096", "\uF0A2", "\uF0E6", "\uF0C9", "\uF0AC", "\uF060", "\uF09D", "\uF08D", "\uF03C"
+        };
+
         public MatchingGame(Form form)
         {
             this.form = form;
@@ -34,8 +43,6 @@ namespace KolmRakendust
 
         private void InitializeGame()
         {
-            form.Text = "Matemaatiline mäng";
-
             // aja näitamine: tunnid ja minutid
             timeLabel = new Label
             {
@@ -113,38 +120,38 @@ namespace KolmRakendust
             switch (level)
             {
                 case 1:
-                    pairs = 9; // 8 kaarti
+                    pairs = 9; // 9 pairs (18 cards)
                     timeLeftSeconds = 30;
                     break;
                 case 2:
-                    pairs = 12; // 12 kaarti
+                    pairs = 12; // 12 pairs (24 cards)
                     timeLeftSeconds = 50;
                     break;
                 case 3:
                 default:
-                    pairs = 15; // 16 kaarti
+                    pairs = 15; // 15 pairs (30 cards)
                     timeLeftSeconds = 50;
                     break;
             }
 
-            // kaardid
-            var list = new List<string>();
-            for (int i = 1; i <= pairs; i++)
+            // Shuffle and create pairs of symbols for the game
+            var selectedSymbols = new List<string>();
+            for (int i = 0; i < pairs; i++)
             {
-                list.Add(i.ToString());
-                list.Add(i.ToString());
+                selectedSymbols.Add(webdingsSymbols[i % webdingsSymbols.Count]);
+                selectedSymbols.Add(webdingsSymbols[i % webdingsSymbols.Count]);
             }
-            icons = list.ToArray();
+            icons = selectedSymbols.ToArray();
             ShuffleIcons();
 
             int totalCards = pairs * 2;
             labels = new Label[totalCards];
 
             int startX = 150;
-            int startY = 70; // kaardid algavad siit
+            int startY = 70;
             int x = startX;
             int y = startY;
-            int columns = 5; // veerud
+            int columns = 5;
             int spacing = 110;
 
             for (int i = 0; i < labels.Length; i++)
@@ -154,7 +161,7 @@ namespace KolmRakendust
                     Width = 100,
                     Height = 100,
                     Text = "?",
-                    Font = new Font("Arial", 24, FontStyle.Bold),
+                    Font = new Font("Webdings", 24, FontStyle.Bold),
                     TextAlign = ContentAlignment.MiddleCenter,
                     BackColor = Color.LightGray,
                     BorderStyle = BorderStyle.FixedSingle,
@@ -173,7 +180,7 @@ namespace KolmRakendust
             }
 
             UpdateTimeLabel();
-            gameTimer.Start();
+            // gameTimer.Start(); <-- eemaldatud, nüüd hakkab jooksma alles esimese kaardi klikkimisel
         }
 
         private void ShuffleIcons()
@@ -189,7 +196,6 @@ namespace KolmRakendust
 
         private void Label_Click(object sender, EventArgs e)
         {
-
             if (!gameActive || (flipTimer != null && flipTimer.Enabled))
                 return;
 
@@ -203,6 +209,12 @@ namespace KolmRakendust
             int index = Array.IndexOf(labels, clickedLabel);
             if (index < 0 || index >= icons.Length)
                 return;
+
+            // Käivitame taimeri ainult esimese kaardi kliki korral
+            if (!gameTimer.Enabled)
+            {
+                gameTimer.Start();
+            }
 
             clickedLabel.Text = icons[index];
 
@@ -256,7 +268,6 @@ namespace KolmRakendust
             {
                 gameTimer.Stop();
                 gameActive = false;
-                // mäng läbi
                 MessageBox.Show("Aeg on otsas!");
             }
         }
@@ -273,6 +284,8 @@ namespace KolmRakendust
             firstClicked = null;
             secondClicked = null;
         }
+
+        // Show game elements
         public void Show()
         {
             level1Btn.Visible = true;

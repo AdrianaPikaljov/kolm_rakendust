@@ -15,9 +15,19 @@ namespace KolmRakendust
         private int timeLeft;
         private Control parentControl;
 
+        private string[] questions = {
+            "26 + 34 =", "47 - 26 =", "3 × 3 =", "64 ÷ 8 =", "12 + 18 =", "50 - 19 =", "8 × 7 =", "72 ÷ 9 ="
+        };
+
+        private int[] answers = { 26 + 34, 47 - 26, 3 * 3, 64 / 8, 12 + 18, 50 - 19, 8 * 7, 72 / 9 };
+
+        private Random rand;
+
         public MathQuiz(Control parent)
         {
             parentControl = parent;
+
+            rand = new Random();
 
             // Alusta ajaloenduri, nuppude ja küsimuste loomist
             startButton = new Button();
@@ -40,10 +50,10 @@ namespace KolmRakendust
             endQuizButton.Click += EndQuizButton_Click;
 
             // Küsimused
-            lblQuestion1 = new Label() { Text = "26 + 34 =", Location = new Point(150, 50), AutoSize = true };
-            lblQuestion2 = new Label() { Text = "47 - 26 =", Location = new Point(150, 90), AutoSize = true };
-            lblQuestion3 = new Label() { Text = "3 × 3 =", Location = new Point(150, 130), AutoSize = true };
-            lblQuestion4 = new Label() { Text = "64 ÷ 8 =", Location = new Point(150, 170), AutoSize = true };
+            lblQuestion1 = new Label() { Text = "", Location = new Point(150, 50), AutoSize = true };
+            lblQuestion2 = new Label() { Text = "", Location = new Point(150, 90), AutoSize = true };
+            lblQuestion3 = new Label() { Text = "", Location = new Point(150, 130), AutoSize = true };
+            lblQuestion4 = new Label() { Text = "", Location = new Point(150, 170), AutoSize = true };
 
             // Vastused
             numAnswer1 = new NumericUpDown() { Location = new Point(220, 50), Width = 60 };
@@ -82,6 +92,36 @@ namespace KolmRakendust
             timer.Start();
             startButton.Enabled = false;
             submitButton.Enabled = true;
+
+            // Juhuslikult valitud küsimused
+            int[] questionIndexes = GetRandomQuestions();
+
+            // Kuvame küsimused
+            lblQuestion1.Text = questions[questionIndexes[0]];
+            lblQuestion2.Text = questions[questionIndexes[1]];
+            lblQuestion3.Text = questions[questionIndexes[2]];
+            lblQuestion4.Text = questions[questionIndexes[3]];
+
+            // Salvestame vastused
+            numAnswer1.Tag = answers[questionIndexes[0]];
+            numAnswer2.Tag = answers[questionIndexes[1]];
+            numAnswer3.Tag = answers[questionIndexes[2]];
+            numAnswer4.Tag = answers[questionIndexes[3]];
+        }
+
+        // Juhuslikult küsimused
+        private int[] GetRandomQuestions()
+        {
+            int[] questionIndexes = { 0, 1, 2, 3, 4, 5, 6, 7 };
+            for (int i = 0; i < questionIndexes.Length; i++)
+            {
+                int j = rand.Next(i, questionIndexes.Length);
+                int temp = questionIndexes[i];
+                questionIndexes[i] = questionIndexes[j];
+                questionIndexes[j] = temp;
+            }
+
+            return new int[] { questionIndexes[0], questionIndexes[1], questionIndexes[2], questionIndexes[3] };
         }
 
         // Esita vastused ja kontrolli neid
@@ -90,10 +130,10 @@ namespace KolmRakendust
             timer.Stop();
             int correctAnswers = 0;
 
-            if (numAnswer1.Value == 26 + 34) correctAnswers++;
-            if (numAnswer2.Value == 47 - 26) correctAnswers++;
-            if (numAnswer3.Value == 3 * 3) correctAnswers++;
-            if (numAnswer4.Value == 64 / 8) correctAnswers++;
+            if ((int)numAnswer1.Tag == (int)numAnswer1.Value) correctAnswers++;
+            if ((int)numAnswer2.Tag == (int)numAnswer2.Value) correctAnswers++;
+            if ((int)numAnswer3.Tag == (int)numAnswer3.Value) correctAnswers++;
+            if ((int)numAnswer4.Tag == (int)numAnswer4.Value) correctAnswers++;
 
             lblResult.Text = $"Õigeid vastuseid: {correctAnswers}/4";
 
@@ -102,9 +142,9 @@ namespace KolmRakendust
         }
 
         // Lõpeta viktoriin, tühjenda vastused ja uuenda aega
-         private void EndQuizButton_Click(object sender, EventArgs e)
-         {
-                // Tühjendame kõik vastused
+        private void EndQuizButton_Click(object sender, EventArgs e)
+        {
+            // Tühjendame kõik vastused
             numAnswer1.Value = 0;
             numAnswer2.Value = 0;
             numAnswer3.Value = 0;
@@ -115,14 +155,11 @@ namespace KolmRakendust
             lblTimeLeft.Text = $"Aeg: {timeLeft} sek.";  // Aja kuvamine värskendatud
             lblResult.Text = " ";
 
-
             // Taastame nuppude olekud (start nupp aktiivseks, submit nupp mitteaktiivseks)
             startButton.Enabled = true;
             submitButton.Enabled = false;
             endQuizButton.Enabled = false;
         }
-
-
 
         // Aja loenduri täiendamine
         private void Timer_Tick(object sender, EventArgs e)
@@ -176,3 +213,4 @@ namespace KolmRakendust
         }
     }
 }
+

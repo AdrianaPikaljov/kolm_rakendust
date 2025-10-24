@@ -67,15 +67,20 @@ namespace KolmRakendust
             if (e.Node.Text == "Pildi vaatamise programm")
             {
                 pildiVaataja.Show();
-
+                mathQuiz.Hide();
+                matchingGame.Hide();
             }
             else if (e.Node.Text == "Matemaatiline test")
             {
                 mathQuiz.Show();
+                pildiVaataja.Hide();
+                matchingGame.Hide();
             }
             else if (e.Node.Text == "Sarnaste piltide leidmise mäng")
             {
                 matchingGame.Show();
+                pildiVaataja.Hide();
+                mathQuiz.Hide();
             }
         }
 

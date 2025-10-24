@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace KolmRakendust
 {
-
     public class pildiVaatamise
     {
         private Button showButton;
@@ -16,16 +11,17 @@ namespace KolmRakendust
         private Button backgroundButton;
         private Button closeButton;
         private Button filer;
+        private Button rotateButton;  // Pööramise nupp
         private CheckBox stretchCheckBox;
         private PictureBox pictureBox;
         private OpenFileDialog openFileDialog;
         private ColorDialog colorDialog;
         private Control parentControl;
+        private Image originalImage;  // Hoidke algne pilt
 
         public pildiVaatamise(Control parent)
         {
             parentControl = parent;
-
 
             openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Image Files|*.bmp;*.jpg;*.jpeg;*.png;*.gif|All files|*.*";
@@ -44,13 +40,11 @@ namespace KolmRakendust
             clearButton.Size = new Size(100, 30);
             clearButton.Click += ClearButton_Click;
 
-
             backgroundButton = new Button();
             backgroundButton.Text = "Muuda taustavärvi";
             backgroundButton.Location = new Point(370, 10);
             backgroundButton.Size = new Size(120, 30);
             backgroundButton.Click += BackgroundButton_Click;
-
 
             closeButton = new Button();
             closeButton.Text = "Sulge";
@@ -58,13 +52,11 @@ namespace KolmRakendust
             closeButton.Size = new Size(100, 30);
             closeButton.Click += CloseButton_Click;
 
-
             stretchCheckBox = new CheckBox();
             stretchCheckBox.Text = "Rasta pilt";
             stretchCheckBox.Location = new Point(610, 15);
             stretchCheckBox.Size = new Size(100, 20);
             stretchCheckBox.CheckedChanged += StretchCheckBox_CheckedChanged;
-
 
             filer = new Button();
             filer.Text = "Filtrid";
@@ -72,16 +64,18 @@ namespace KolmRakendust
             filer.Size = new Size(100, 30);
             filer.Click += filer_Click;
 
-
-
-
+            // Pööramise nupp
+            rotateButton = new Button();
+            rotateButton.Text = "Pööra pilt";
+            rotateButton.Location = new Point(810, 10);
+            rotateButton.Size = new Size(100, 30);
+            rotateButton.Click += RotateButton_Click;
 
             pictureBox = new PictureBox();
             pictureBox.Location = new Point(150, 50);
             pictureBox.Size = new Size(560, 450);
             pictureBox.BorderStyle = BorderStyle.Fixed3D;
-            pictureBox.SizeMode = PictureBoxSizeMode.Normal;
-
+            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;  // Kasutame Zoomi, et pilt suumimist toetaks
 
             parentControl.Controls.Add(showButton);
             parentControl.Controls.Add(clearButton);
@@ -89,7 +83,49 @@ namespace KolmRakendust
             parentControl.Controls.Add(closeButton);
             parentControl.Controls.Add(stretchCheckBox);
             parentControl.Controls.Add(pictureBox);
+            parentControl.Controls.Add(rotateButton);  // Lisa pööramise nupp
         }
+
+        private void ShowButton_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                // Lae pilt ja salvesta originaal
+                originalImage = Image.FromFile(openFileDialog.FileName);
+                pictureBox.Image = originalImage;  // Näita pilti PictureBoxis
+            }
+        }
+
+        private void ClearButton_Click(object sender, EventArgs e)
+        {
+            pictureBox.Image = null;
+            originalImage = null; // Tühjenda originaalpilt
+        }
+
+        private void BackgroundButton_Click(object sender, EventArgs e)
+        {
+            if (colorDialog.ShowDialog() == DialogResult.OK)
+            {
+                pictureBox.BackColor = colorDialog.Color;
+            }
+        }
+
+        private void CloseButton_Click(object sender, EventArgs e)
+        {
+            if (parentControl is Form form)
+            {
+                form.Close();
+            }
+        }
+
+        private void StretchCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (stretchCheckBox.Checked)
+                pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+            else
+                pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+        }
+
         private void filer_Click(object sender, EventArgs e)
         {
             string[] Valikud =
@@ -101,46 +137,15 @@ namespace KolmRakendust
                 "Siin on väike üllatus!"
             };
         }
-        private void ShowButton_Click(object sender, EventArgs e)
-        {
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+        // Pööramine (Pilt jääb samaks, PictureBoxi mõõdud jäävad muutumatuks)
+        private void RotateButton_Click(object sender, EventArgs e)
+        {
+            if (originalImage != null)
             {
-                pictureBox.Load(openFileDialog.FileName);
+                originalImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                pictureBox.Image = originalImage;  // Kuvab uuesti pööratud pildi
             }
-        }
-
-        private void ClearButton_Click(object sender, EventArgs e)
-        {
-
-            pictureBox.Image = null;
-        }
-
-        private void BackgroundButton_Click(object sender, EventArgs e)
-        {
-
-            if (colorDialog.ShowDialog() == DialogResult.OK)
-            {
-                pictureBox.BackColor = colorDialog.Color;
-            }
-        }
-
-        private void CloseButton_Click(object sender, EventArgs e)
-        {
-
-            if (parentControl is Form form)
-            {
-                form.Close();
-            }
-        }
-
-        private void StretchCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-
-            if (stretchCheckBox.Checked)
-                pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
-            else
-                pictureBox.SizeMode = PictureBoxSizeMode.Normal;
         }
 
         public void Show()
@@ -151,6 +156,7 @@ namespace KolmRakendust
             closeButton.Visible = true;
             stretchCheckBox.Visible = true;
             pictureBox.Visible = true;
+            rotateButton.Visible = true;  // Kuvame ainult pööramise nupu
         }
 
         public void Hide()
@@ -161,6 +167,7 @@ namespace KolmRakendust
             closeButton.Visible = false;
             stretchCheckBox.Visible = false;
             pictureBox.Visible = false;
+            rotateButton.Visible = false;  // Peidame pööramise nupu
         }
     }
 }
