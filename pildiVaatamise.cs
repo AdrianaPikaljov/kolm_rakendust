@@ -6,18 +6,15 @@ namespace KolmRakendust
 {
     public class pildiVaatamise
     {
-        private Button showButton;
-        private Button clearButton;
-        private Button backgroundButton;
-        private Button closeButton;
-        private Button filer;
-        private Button rotateButton;  // Pööramise nupp
+        private Button showButton, clearButton, backgroundButton, closeButton, rotateButton;
         private CheckBox stretchCheckBox;
+        private CheckBox grayCheckBox, negativeCheckBox, brightCheckBox, darkCheckBox;
         private PictureBox pictureBox;
         private OpenFileDialog openFileDialog;
         private ColorDialog colorDialog;
         private Control parentControl;
-        private Image originalImage;  // Hoidke algne pilt
+        private Bitmap originalImage; // alati originaal
+        private int rotationAngle = 0; // pööramise aste (0, 90, 180, 270)
 
         public pildiVaatamise(Control parent)
         {
@@ -25,129 +22,168 @@ namespace KolmRakendust
 
             openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Image Files|*.bmp;*.jpg;*.jpeg;*.png;*.gif|All files|*.*";
-
             colorDialog = new ColorDialog();
 
-            showButton = new Button();
-            showButton.Text = "Vali pilt...";
-            showButton.Location = new Point(150, 10);
-            showButton.Size = new Size(100, 30);
+            // Põhinupud
+            showButton = new Button { Text = "Vali pilt...", Location = new Point(150, 10), Size = new Size(100, 30) };
             showButton.Click += ShowButton_Click;
 
-            clearButton = new Button();
-            clearButton.Text = "Tühjenda pilt";
-            clearButton.Location = new Point(260, 10);
-            clearButton.Size = new Size(100, 30);
+            clearButton = new Button { Text = "Tühjenda pilt", Location = new Point(260, 10), Size = new Size(100, 30) };
             clearButton.Click += ClearButton_Click;
 
-            backgroundButton = new Button();
-            backgroundButton.Text = "Muuda taustavärvi";
-            backgroundButton.Location = new Point(370, 10);
-            backgroundButton.Size = new Size(120, 30);
+            backgroundButton = new Button { Text = "Taustavärv", Location = new Point(370, 10), Size = new Size(100, 30) };
             backgroundButton.Click += BackgroundButton_Click;
 
-            closeButton = new Button();
-            closeButton.Text = "Sulge";
-            closeButton.Location = new Point(500, 10);
-            closeButton.Size = new Size(100, 30);
+            closeButton = new Button { Text = "Sulge", Location = new Point(480, 10), Size = new Size(100, 30) };
             closeButton.Click += CloseButton_Click;
 
-            stretchCheckBox = new CheckBox();
-            stretchCheckBox.Text = "Rasta pilt";
-            stretchCheckBox.Location = new Point(610, 15);
-            stretchCheckBox.Size = new Size(100, 20);
+            stretchCheckBox = new CheckBox { Text = "Rasta pilt", Location = new Point(590, 15), Size = new Size(100, 20) };
             stretchCheckBox.CheckedChanged += StretchCheckBox_CheckedChanged;
 
-            filer = new Button();
-            filer.Text = "Filtrid";
-            filer.Location = new Point(700, 10);
-            filer.Size = new Size(100, 30);
-            filer.Click += filer_Click;
-
-            // Pööramise nupp
-            rotateButton = new Button();
-            rotateButton.Text = "Pööra pilt";
-            rotateButton.Location = new Point(810, 10);
-            rotateButton.Size = new Size(100, 30);
+            rotateButton = new Button { Text = "Pööra pilt", Location = new Point(700, 10), Size = new Size(100, 30) };
             rotateButton.Click += RotateButton_Click;
 
-            pictureBox = new PictureBox();
-            pictureBox.Location = new Point(150, 50);
-            pictureBox.Size = new Size(560, 450);
-            pictureBox.BorderStyle = BorderStyle.Fixed3D;
-            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;  // Kasutame Zoomi, et pilt suumimist toetaks
+            // --- Filtri CheckBoxid ---
+            grayCheckBox = new CheckBox { Text = "Halltoon", Location = new Point(150, 510), Size = new Size(100, 20) };
+            negativeCheckBox = new CheckBox { Text = "Negatiiv", Location = new Point(260, 510), Size = new Size(100, 20) };
+            brightCheckBox = new CheckBox { Text = "Heledam", Location = new Point(370, 510), Size = new Size(100, 20) };
+            darkCheckBox = new CheckBox { Text = "Tumedam", Location = new Point(480, 510), Size = new Size(100, 20) };
 
-            parentControl.Controls.Add(showButton);
-            parentControl.Controls.Add(clearButton);
-            parentControl.Controls.Add(backgroundButton);
-            parentControl.Controls.Add(closeButton);
-            parentControl.Controls.Add(stretchCheckBox);
-            parentControl.Controls.Add(pictureBox);
-            parentControl.Controls.Add(rotateButton);  // Lisa pööramise nupp
+            grayCheckBox.CheckedChanged += FilterChanged;
+            negativeCheckBox.CheckedChanged += FilterChanged;
+            brightCheckBox.CheckedChanged += FilterChanged;
+            darkCheckBox.CheckedChanged += FilterChanged;
+
+            // PictureBox
+            pictureBox = new PictureBox
+            {
+                Location = new Point(150, 50),
+                Size = new Size(540, 450),
+                BorderStyle = BorderStyle.Fixed3D,
+                SizeMode = PictureBoxSizeMode.Zoom
+            };
+
+            // Lisa kõik komponendid parentile
+            parent.Controls.Add(showButton);
+            parent.Controls.Add(clearButton);
+            parent.Controls.Add(backgroundButton);
+            parent.Controls.Add(closeButton);
+            parent.Controls.Add(stretchCheckBox);
+            parent.Controls.Add(pictureBox);
+            parent.Controls.Add(rotateButton);
+
+            parent.Controls.Add(grayCheckBox);
+            parent.Controls.Add(negativeCheckBox);
+            parent.Controls.Add(brightCheckBox);
+            parent.Controls.Add(darkCheckBox);
         }
 
+        // --- Funktsioonid ---
         private void ShowButton_Click(object sender, EventArgs e)
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                // Lae pilt ja salvesta originaal
-                originalImage = Image.FromFile(openFileDialog.FileName);
-                pictureBox.Image = originalImage;  // Näita pilti PictureBoxis
+                originalImage = new Bitmap(openFileDialog.FileName);
+                rotationAngle = 0;
+                UpdateImage();
             }
         }
 
         private void ClearButton_Click(object sender, EventArgs e)
         {
             pictureBox.Image = null;
-            originalImage = null; // Tühjenda originaalpilt
+            originalImage = null;
+            rotationAngle = 0;
         }
 
         private void BackgroundButton_Click(object sender, EventArgs e)
         {
             if (colorDialog.ShowDialog() == DialogResult.OK)
-            {
                 pictureBox.BackColor = colorDialog.Color;
-            }
         }
 
         private void CloseButton_Click(object sender, EventArgs e)
         {
-            if (parentControl is Form form)
-            {
-                form.Close();
-            }
+            if (parentControl is Form f) f.Close();
         }
 
         private void StretchCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (stretchCheckBox.Checked)
-                pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
-            else
-                pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox.SizeMode = stretchCheckBox.Checked ?
+                PictureBoxSizeMode.StretchImage :
+                PictureBoxSizeMode.Zoom;
         }
 
-        private void filer_Click(object sender, EventArgs e)
-        {
-            string[] Valikud =
-            {
-                "Tumedam.",
-                "Heledam!",
-                "Jätka, sa teed suurepärast tööd!",
-                "Kas tead? Juhuslikud sõnumid on lõbusad.",
-                "Siin on väike üllatus!"
-            };
-        }
-
-        // Pööramine (Pilt jääb samaks, PictureBoxi mõõdud jäävad muutumatuks)
+        // --- Pööra (ainult visuaalselt, mitte päriselt) ---
         private void RotateButton_Click(object sender, EventArgs e)
         {
-            if (originalImage != null)
-            {
-                originalImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                pictureBox.Image = originalImage;  // Kuvab uuesti pööratud pildi
-            }
+            if (originalImage == null) return;
+            rotationAngle = (rotationAngle + 90) % 360;
+            UpdateImage();
         }
 
+        // --- Rakendab filtrid ja pööramise ---
+        private void UpdateImage()
+        {
+            if (originalImage == null) return;
+            Bitmap bmp = new Bitmap(originalImage);
+
+            // Rakenda filtrid
+            for (int y = 0; y < bmp.Height; y++)
+            {
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    Color c = originalImage.GetPixel(x, y);
+                    int r = c.R, g = c.G, b = c.B;
+
+                    if (grayCheckBox.Checked)
+                    {
+                        int gray = (r + g + b) / 3;
+                        r = g = b = gray;
+                    }
+                    if (negativeCheckBox.Checked)
+                    {
+                        r = 255 - r;
+                        g = 255 - g;
+                        b = 255 - b;
+                    }
+                    if (brightCheckBox.Checked)
+                    {
+                        r = Math.Min(r + 30, 255);
+                        g = Math.Min(g + 30, 255);
+                        b = Math.Min(b + 30, 255);
+                    }
+                    if (darkCheckBox.Checked)
+                    {
+                        r = Math.Max(r - 30, 0);
+                        g = Math.Max(g - 30, 0);
+                        b = Math.Max(b - 30, 0);
+                    }
+
+                    bmp.SetPixel(x, y, Color.FromArgb(r, g, b));
+                }
+            }
+
+            // Kui pööre on valitud, tee sellest koopia
+            if (rotationAngle != 0)
+            {
+                switch (rotationAngle)
+                {
+                    case 90: bmp.RotateFlip(RotateFlipType.Rotate90FlipNone); break;
+                    case 180: bmp.RotateFlip(RotateFlipType.Rotate180FlipNone); break;
+                    case 270: bmp.RotateFlip(RotateFlipType.Rotate270FlipNone); break;
+                }
+            }
+
+            pictureBox.Image = bmp;
+        }
+
+        private void FilterChanged(object sender, EventArgs e)
+        {
+            UpdateImage();
+        }
+
+        // --- Show ja Hide ---
         public void Show()
         {
             showButton.Visible = true;
@@ -156,7 +192,12 @@ namespace KolmRakendust
             closeButton.Visible = true;
             stretchCheckBox.Visible = true;
             pictureBox.Visible = true;
-            rotateButton.Visible = true;  // Kuvame ainult pööramise nupu
+            rotateButton.Visible = true;
+
+            grayCheckBox.Visible = true;
+            negativeCheckBox.Visible = true;
+            brightCheckBox.Visible = true;
+            darkCheckBox.Visible = true;
         }
 
         public void Hide()
@@ -167,7 +208,12 @@ namespace KolmRakendust
             closeButton.Visible = false;
             stretchCheckBox.Visible = false;
             pictureBox.Visible = false;
-            rotateButton.Visible = false;  // Peidame pööramise nupu
+            rotateButton.Visible = false;
+
+            grayCheckBox.Visible = false;
+            negativeCheckBox.Visible = false;
+            brightCheckBox.Visible = false;
+            darkCheckBox.Visible = false;
         }
     }
 }
