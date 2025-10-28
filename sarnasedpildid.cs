@@ -9,30 +9,30 @@ namespace KolmRakendust
     public class MatchingGame
     {
         private Label[] labels;
-        private string[] icons;
         private Label firstClicked = null;
         private Label secondClicked = null;
         private Random random = new Random();
-        private System.Windows.Forms.Timer flipTimer; // kaartide pööramise taimer
-        private System.Windows.Forms.Timer gameTimer; // mängu aja taimer
+
+        private Timer flipTimer; // kaartide pööramise taimer
+        private Timer gameTimer; // mängu aja taimer
+
         private int matchedPairs = 0;
-        private Form form;
         private int points = 0;
+        private int timeLeftSeconds;
+        private bool gameActive = false;
+
+        private Form form;
         private Label timeLabel;
         private Button level1Btn;
         private Button level2Btn;
         private Button level3Btn;
-        private int timeLeftSeconds;
-        private bool gameActive = false;
 
-        // Define the list of Webdings symbols
-        private List<string> webdingsSymbols = new List<string>
+        private string[] currentIcons; // aktiivse mängu ikoonid
+
+        // Algne sümbolite komplekt
+        private readonly List<string> baseIcons = new List<string>()
         {
-            "\uF112", "\uF121", "\uF02C", "\uF02A", "\uF023", "\uF07F", "\uF033", "\uF02A", "\uF031", "\uF037",
-            "\uF030", "\uF031", "\uF034", "\uF07F", "\uF033", "\uF028", "\uF03B", "\uF033", "\uF032",
-            "\uF0C5", "\uF07E", "\uF0B3", "\uF051", "\uF02F", "\uF034", "\uF0A0", "\uF022", "\uF042", "\uF055",
-            "\uF060", "\uF064", "\uF072", "\uF0F4", "\uF083", "\uF091", "\uF0D2", "\uF0D4", "\uF0C2", "\uF0F0",
-            "\uF091", "\uF096", "\uF0A2", "\uF0E6", "\uF0C9", "\uF0AC", "\uF060", "\uF09D", "\uF08D", "\uF03C"
+            "!", "N", ",", "k", "b", "v", "w", "z", "p", "d", "h", "s", "a", "l", "r"
         };
 
         public MatchingGame(Form form)
@@ -43,7 +43,7 @@ namespace KolmRakendust
 
         private void InitializeGame()
         {
-            // aja näitamine: tunnid ja minutid
+            // Aja näitaja
             timeLabel = new Label
             {
                 Width = 200,
@@ -54,6 +54,7 @@ namespace KolmRakendust
             };
             form.Controls.Add(timeLabel);
 
+            // Tase 1
             level1Btn = new Button
             {
                 Text = "Tase 1",
@@ -63,6 +64,7 @@ namespace KolmRakendust
             level1Btn.Click += (s, e) => StartLevel(1);
             form.Controls.Add(level1Btn);
 
+            // Tase 2
             level2Btn = new Button
             {
                 Text = "Tase 2",
@@ -72,6 +74,7 @@ namespace KolmRakendust
             level2Btn.Click += (s, e) => StartLevel(2);
             form.Controls.Add(level2Btn);
 
+            // Tase 3
             level3Btn = new Button
             {
                 Text = "Tase 3",
@@ -81,26 +84,20 @@ namespace KolmRakendust
             level3Btn.Click += (s, e) => StartLevel(3);
             form.Controls.Add(level3Btn);
 
-            // taimerid
-            flipTimer = new System.Windows.Forms.Timer
-            {
-                Interval = 750
-            };
+            // Taimerid
+            flipTimer = new Timer { Interval = 750 };
             flipTimer.Tick += FlipTimer_Tick;
 
-            gameTimer = new System.Windows.Forms.Timer
-            {
-                Interval = 1000
-            };
+            gameTimer = new Timer { Interval = 1000 };
             gameTimer.Tick += GameTimer_Tick;
 
-            // alustame esimese tasemega
+            // Käivitame esimese taseme
             StartLevel(1);
         }
 
         private void StartLevel(int level)
         {
-            // eemaldame vanad kaardid, kui olemas
+            // Eemaldame vanad kaardid
             if (labels != null)
             {
                 foreach (var l in labels)
@@ -120,48 +117,49 @@ namespace KolmRakendust
             switch (level)
             {
                 case 1:
-                    pairs = 9; // 9 pairs (18 cards)
+                    pairs = 9; // 18 kaarti
                     timeLeftSeconds = 30;
                     break;
                 case 2:
-                    pairs = 12; // 12 pairs (24 cards)
-                    timeLeftSeconds = 50;
+                    pairs = 12; // 24 kaarti
+                    timeLeftSeconds = 45;
                     break;
                 case 3:
                 default:
-                    pairs = 15; // 15 pairs (30 cards)
-                    timeLeftSeconds = 50;
+                    pairs = 15; // 30 kaarti
+                    timeLeftSeconds = 60;
                     break;
             }
 
-            // Shuffle and create pairs of symbols for the game
-            var selectedSymbols = new List<string>();
+            // Loome aktiivse ikoonide komplekti
+            var selected = new List<string>();
             for (int i = 0; i < pairs; i++)
             {
-                selectedSymbols.Add(webdingsSymbols[i % webdingsSymbols.Count]);
-                selectedSymbols.Add(webdingsSymbols[i % webdingsSymbols.Count]);
+                string symbol = baseIcons[i % baseIcons.Count];
+                selected.Add(symbol);
+                selected.Add(symbol);
             }
-            icons = selectedSymbols.ToArray();
+            currentIcons = selected.ToArray();
             ShuffleIcons();
 
             int totalCards = pairs * 2;
             labels = new Label[totalCards];
 
+            // Dünaamiline paigutus
+            int columns = Math.Min(6, pairs); // max 6 veergu
+            int spacing = 110;
             int startX = 150;
             int startY = 70;
-            int x = startX;
-            int y = startY;
-            int columns = 5;
-            int spacing = 110;
+            int x = startX, y = startY;
 
-            for (int i = 0; i < labels.Length; i++)
+            for (int i = 0; i < totalCards; i++)
             {
                 labels[i] = new Label
                 {
                     Width = 100,
                     Height = 100,
                     Text = "?",
-                    Font = new Font("Webdings", 24, FontStyle.Bold),
+                    Font = new Font("Webdings", 28, FontStyle.Bold),
                     TextAlign = ContentAlignment.MiddleCenter,
                     BackColor = Color.LightGray,
                     BorderStyle = BorderStyle.FixedSingle,
@@ -180,43 +178,29 @@ namespace KolmRakendust
             }
 
             UpdateTimeLabel();
-            // gameTimer.Start(); <-- eemaldatud, nüüd hakkab jooksma alles esimese kaardi klikkimisel
         }
 
         private void ShuffleIcons()
         {
-            for (int i = 0; i < icons.Length; i++)
+            for (int i = 0; i < currentIcons.Length; i++)
             {
-                int j = random.Next(icons.Length);
-                string temp = icons[i];
-                icons[i] = icons[j];
-                icons[j] = temp;
+                int j = random.Next(currentIcons.Length);
+                (currentIcons[i], currentIcons[j]) = (currentIcons[j], currentIcons[i]);
             }
         }
 
         private void Label_Click(object sender, EventArgs e)
         {
-            if (!gameActive || (flipTimer != null && flipTimer.Enabled))
-                return;
+            if (!gameActive || flipTimer.Enabled) return;
 
             var clickedLabel = sender as Label;
-            if (clickedLabel == null)
-                return;
+            if (clickedLabel == null || clickedLabel.Text != "?") return;
 
-            if (clickedLabel.Text != "?")
-                return;
+            // Käivitame taimeri esimesel klikkimisel
+            if (!gameTimer.Enabled) gameTimer.Start();
 
             int index = Array.IndexOf(labels, clickedLabel);
-            if (index < 0 || index >= icons.Length)
-                return;
-
-            // Käivitame taimeri ainult esimese kaardi kliki korral
-            if (!gameTimer.Enabled)
-            {
-                gameTimer.Start();
-            }
-
-            clickedLabel.Text = icons[index];
+            clickedLabel.Text = currentIcons[index];
 
             if (firstClicked == null)
             {
@@ -234,11 +218,11 @@ namespace KolmRakendust
                 secondClicked.BackColor = Color.LightGreen;
                 ResetClickedLabels();
 
-                if (matchedPairs == icons.Length / 2)
+                if (matchedPairs == currentIcons.Length / 2)
                 {
                     gameTimer.Stop();
                     gameActive = false;
-                    MessageBox.Show($"Võit! Punktid: {points}");
+                    MessageBox.Show($"🎉 Võit! Punktid: {points}");
                 }
             }
             else
@@ -251,11 +235,8 @@ namespace KolmRakendust
         {
             flipTimer.Stop();
 
-            if (firstClicked != null)
-                firstClicked.Text = "?";
-            if (secondClicked != null)
-                secondClicked.Text = "?";
-
+            if (firstClicked != null) firstClicked.Text = "?";
+            if (secondClicked != null) secondClicked.Text = "?";
             ResetClickedLabels();
         }
 
@@ -268,7 +249,7 @@ namespace KolmRakendust
             {
                 gameTimer.Stop();
                 gameActive = false;
-                MessageBox.Show("Aeg on otsas!");
+                MessageBox.Show("⏰ Aeg on otsas!");
             }
         }
 
@@ -285,7 +266,6 @@ namespace KolmRakendust
             secondClicked = null;
         }
 
-        // Show game elements
         public void Show()
         {
             level1Btn.Visible = true;
@@ -293,12 +273,9 @@ namespace KolmRakendust
             level3Btn.Visible = true;
             timeLabel.Visible = true;
             foreach (var label in labels)
-            {
                 label.Visible = true;
-            }
         }
 
-        // Hide game elements
         public void Hide()
         {
             level1Btn.Visible = false;
@@ -306,9 +283,7 @@ namespace KolmRakendust
             level3Btn.Visible = false;
             timeLabel.Visible = false;
             foreach (var label in labels)
-            {
                 label.Visible = false;
-            }
         }
     }
 }
