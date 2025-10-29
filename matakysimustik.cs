@@ -26,7 +26,6 @@ namespace KolmRakendust
         public MathQuiz(Control parent)
         {
             parentControl = parent;
-
             rand = new Random();
 
             // Alusta ajaloenduri, nuppude ja küsimuste loomist
@@ -35,40 +34,44 @@ namespace KolmRakendust
             startButton.Location = new Point(150, 10);
             startButton.Size = new Size(120, 30);
             startButton.Click += StartButton_Click;
+            SetButtonStyle(startButton);
 
             submitButton = new Button();
             submitButton.Text = "Esita vastused";
             submitButton.Location = new Point(280, 10);
             submitButton.Size = new Size(120, 30);
             submitButton.Click += SubmitButton_Click;
-            submitButton.Enabled = false;  // Esialgu keelatud
+            submitButton.Enabled = false;
+            SetButtonStyle(submitButton);
 
             endQuizButton = new Button();
             endQuizButton.Text = "Lõpeta test";
             endQuizButton.Location = new Point(410, 10);
             endQuizButton.Size = new Size(120, 30);
             endQuizButton.Click += EndQuizButton_Click;
+            SetButtonStyle(endQuizButton);
 
             // Küsimused
-            lblQuestion1 = new Label() { Text = "", Location = new Point(150, 50), AutoSize = true };
-            lblQuestion2 = new Label() { Text = "", Location = new Point(150, 90), AutoSize = true };
-            lblQuestion3 = new Label() { Text = "", Location = new Point(150, 130), AutoSize = true };
-            lblQuestion4 = new Label() { Text = "", Location = new Point(150, 170), AutoSize = true };
+            lblQuestion1 = new Label() { Text = "", Location = new Point(150, 50), AutoSize = true, Font = new Font("Arial", 12) };
+            lblQuestion2 = new Label() { Text = "", Location = new Point(150, 90), AutoSize = true, Font = new Font("Arial", 12) };
+            lblQuestion3 = new Label() { Text = "", Location = new Point(150, 130), AutoSize = true, Font = new Font("Arial", 12) };
+            lblQuestion4 = new Label() { Text = "", Location = new Point(150, 170), AutoSize = true, Font = new Font("Arial", 12) };
 
             // Vastused
-            numAnswer1 = new NumericUpDown() { Location = new Point(220, 50), Width = 60 };
-            numAnswer2 = new NumericUpDown() { Location = new Point(220, 90), Width = 60 };
-            numAnswer3 = new NumericUpDown() { Location = new Point(220, 130), Width = 60 };
-            numAnswer4 = new NumericUpDown() { Location = new Point(220, 170), Width = 60 };
+            numAnswer1 = new NumericUpDown() { Location = new Point(250, 50), Width = 60 };
+            numAnswer2 = new NumericUpDown() { Location = new Point(250, 90), Width = 60 };
+            numAnswer3 = new NumericUpDown() { Location = new Point(250, 130), Width = 60 };
+            numAnswer4 = new NumericUpDown() { Location = new Point(250, 170), Width = 60 };
 
-            lblTimeLeft = new Label() { Text = "Aeg: 30 sek.", Location = new Point(300, 50), AutoSize = true };
-            lblResult = new Label() { Text = "", Location = new Point(330, 90), AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold) };
+            lblTimeLeft = new Label() { Text = "Aeg: 30 sek.", Location = new Point(330, 50), AutoSize = true, Font = new Font("Arial", 14, FontStyle.Bold), ForeColor = Color.Green };
+            lblResult = new Label() { Text = "", Location = new Point(370, 90), AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold) };
 
             // Timer
             timer = new Timer();
             timer.Interval = 1000;
             timer.Tick += Timer_Tick;
 
+            // Pane kõik komponendid kokku
             parentControl.Controls.Add(startButton);
             parentControl.Controls.Add(submitButton);
             parentControl.Controls.Add(endQuizButton);
@@ -82,6 +85,19 @@ namespace KolmRakendust
             parentControl.Controls.Add(numAnswer4);
             parentControl.Controls.Add(lblTimeLeft);
             parentControl.Controls.Add(lblResult);
+        }
+
+        // Ühtse stiili määramine nuppudele
+        private void SetButtonStyle(Button button)
+        {
+            button.BackColor = Color.FromArgb(41, 128, 185); // Sinine värv
+            button.ForeColor = Color.White;
+            button.FlatStyle = FlatStyle.Flat;
+            button.FlatAppearance.BorderSize = 0;
+            button.Font = new Font("Arial", 12, FontStyle.Bold);
+
+            button.MouseEnter += (sender, e) => { button.BackColor = Color.FromArgb(34, 98, 145); }; // Hover efekt
+            button.MouseLeave += (sender, e) => { button.BackColor = Color.FromArgb(41, 128, 185); }; // Algvärv
         }
 
         // Alusta viktoriini
@@ -152,7 +168,7 @@ namespace KolmRakendust
 
             // Taastame aja algväärtuse
             timeLeft = 30;
-            lblTimeLeft.Text = $"Aeg: {timeLeft} sek.";  // Aja kuvamine värskendatud
+            lblTimeLeft.Text = $"Aeg: {timeLeft} sek.";
             lblResult.Text = " ";
 
             // Taastame nuppude olekud (start nupp aktiivseks, submit nupp mitteaktiivseks)
