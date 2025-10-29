@@ -41,11 +41,7 @@ namespace KolmRakendust
             closeButton.Click += CloseButton_Click;
             SetButtonStyle(closeButton);
 
-            stretchCheckBox = new CheckBox { Text = "Rasta pilt", Location = new Point(590, 15), Size = new Size(100, 20) };
-            stretchCheckBox.CheckedChanged += StretchCheckBox_CheckedChanged;
-            
-
-            rotateButton = new Button { Text = "Pööra pilt", Location = new Point(700, 10), Size = new Size(100, 30) };
+            rotateButton = new Button { Text = "Pööra pilt", Location = new Point(590, 10), Size = new Size(100, 30) };
             rotateButton.Click += RotateButton_Click;
             SetButtonStyle(rotateButton);
 
@@ -54,6 +50,8 @@ namespace KolmRakendust
             negativeCheckBox = new CheckBox { Text = "Negatiiv", Location = new Point(260, 510), Size = new Size(100, 20) };
             brightCheckBox = new CheckBox { Text = "Heledam", Location = new Point(370, 510), Size = new Size(100, 20) };
             darkCheckBox = new CheckBox { Text = "Tumedam", Location = new Point(480, 510), Size = new Size(100, 20) };
+            stretchCheckBox = new CheckBox { Text = "Rasta pilt", Location = new Point(590, 510), Size = new Size(100, 20) };
+            stretchCheckBox.CheckedChanged += StretchCheckBox_CheckedChanged;
 
             grayCheckBox.CheckedChanged += FilterChanged;
             negativeCheckBox.CheckedChanged += FilterChanged;
@@ -138,7 +136,7 @@ namespace KolmRakendust
             button.ForeColor = Color.White;
             button.FlatStyle = FlatStyle.Flat;
             button.FlatAppearance.BorderSize = 0;
-            button.Font = new Font("Arial", 12, FontStyle.Bold);
+            button.Font = new Font("Arial", 10, FontStyle.Bold);
 
             button.MouseEnter += (sender, e) => { button.BackColor = Color.FromArgb(34, 98, 145); }; // Hover efekt
             button.MouseLeave += (sender, e) => { button.BackColor = Color.FromArgb(41, 128, 185); }; // Algvärv
