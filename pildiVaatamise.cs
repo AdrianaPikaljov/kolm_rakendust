@@ -45,6 +45,9 @@ namespace KolmRakendust
             rotateButton.Click += RotateButton_Click;
             SetButtonStyle(rotateButton);
 
+
+
+
             // --- Filtri CheckBoxid ---
             grayCheckBox = new CheckBox { Text = "Halltoon", Location = new Point(150, 510), Size = new Size(100, 20) };
             negativeCheckBox = new CheckBox { Text = "Negatiiv", Location = new Point(260, 510), Size = new Size(100, 20) };
@@ -67,6 +70,8 @@ namespace KolmRakendust
                 BorderStyle = BorderStyle.Fixed3D,
                 SizeMode = PictureBoxSizeMode.Zoom
             };
+
+
 
 
             // Lisa kõik komponendid parentile
@@ -95,7 +100,7 @@ namespace KolmRakendust
                 UpdateImage();
             }
         }
-   
+
 
         private void ClearButton_Click(object sender, EventArgs e)
         {

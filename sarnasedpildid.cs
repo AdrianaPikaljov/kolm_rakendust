@@ -26,6 +26,7 @@ namespace KolmRakendust
         private Button level1Btn;
         private Button level2Btn;
         private Button level3Btn;
+        private Button btnBack; // Back button
 
         private string[] currentIcons; // aktiivse mängu ikoonid
 
@@ -43,6 +44,15 @@ namespace KolmRakendust
 
         private void InitializeGame()
         {
+            // Add "Back" button
+            btnBack = new Button();
+            btnBack.Text = "Tagasi";
+            btnBack.Location = new Point(150, 500);  // Set position of the "Back" button
+            btnBack.Click += BtnBack_Click;
+            form.Controls.Add(btnBack);
+            SetButtonStyle(btnBack);
+
+
             // Aja näitaja
             timeLabel = new Label
             {
@@ -96,6 +106,13 @@ namespace KolmRakendust
 
             // Käivitame esimese taseme
             StartLevel(1);
+        }
+
+        private void BtnBack_Click(object sender, EventArgs e)
+        {
+            // Hide current form (MatchingGame) and show main UI elements
+            this.Hide();
+            ((Form1)form).ShowUIElements();  // Show main UI elements (buttons and label)
         }
 
         private void StartLevel(int level)
@@ -253,7 +270,7 @@ namespace KolmRakendust
 
             if (firstClicked != null)
             {
-                firstClicked.Text = "";    
+                firstClicked.Text = "";
                 firstClicked.BackColor = Color.FromArgb(41, 128, 185);  // Kui kaarti ei ole õige paar, värvime siniseks
             }
             if (secondClicked != null)

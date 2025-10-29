@@ -28,6 +28,8 @@ namespace KolmRakendust
             parentControl = parent;
             rand = new Random();
 
+
+
             // Alusta ajaloenduri, nuppude ja küsimuste loomist
             startButton = new Button();
             startButton.Text = "Alusta viktoriini";
