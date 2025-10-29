@@ -63,6 +63,7 @@ namespace KolmRakendust
             };
             level1Btn.Click += (s, e) => StartLevel(1);
             form.Controls.Add(level1Btn);
+            SetButtonStyle(level1Btn);
 
             // Tase 2
             level2Btn = new Button
@@ -73,6 +74,7 @@ namespace KolmRakendust
             };
             level2Btn.Click += (s, e) => StartLevel(2);
             form.Controls.Add(level2Btn);
+            SetButtonStyle(level2Btn);
 
             // Tase 3
             level3Btn = new Button
@@ -83,6 +85,7 @@ namespace KolmRakendust
             };
             level3Btn.Click += (s, e) => StartLevel(3);
             form.Controls.Add(level3Btn);
+            SetButtonStyle(level3Btn);
 
             // Taimerid
             flipTimer = new Timer { Interval = 750 };
@@ -158,10 +161,10 @@ namespace KolmRakendust
                 {
                     Width = 100,
                     Height = 100,
-                    Text = "?",
+                    Text = "",
                     Font = new Font("Webdings", 28, FontStyle.Bold),
                     TextAlign = ContentAlignment.MiddleCenter,
-                    BackColor = Color.LightGray,
+                    BackColor = Color.FromArgb(41, 128, 185), // Kaart alguses sinine
                     BorderStyle = BorderStyle.FixedSingle,
                     Location = new Point(x, y)
                 };
@@ -189,18 +192,31 @@ namespace KolmRakendust
             }
         }
 
+        private void SetButtonStyle(Button button)
+        {
+            button.BackColor = Color.FromArgb(41, 128, 185); // Sinine värv
+            button.ForeColor = Color.White;
+            button.FlatStyle = FlatStyle.Flat;
+            button.FlatAppearance.BorderSize = 0;
+            button.Font = new Font("Arial", 10, FontStyle.Bold);
+
+            button.MouseEnter += (sender, e) => { button.BackColor = Color.FromArgb(34, 98, 145); }; // Hover efekt
+            button.MouseLeave += (sender, e) => { button.BackColor = Color.FromArgb(41, 128, 185); }; // Algvärv
+        }
+
         private void Label_Click(object sender, EventArgs e)
         {
             if (!gameActive || flipTimer.Enabled) return;
 
             var clickedLabel = sender as Label;
-            if (clickedLabel == null || clickedLabel.Text != "?") return;
+            if (clickedLabel == null || clickedLabel.Text != "") return;
 
             // Käivitame taimeri esimesel klikkimisel
             if (!gameTimer.Enabled) gameTimer.Start();
 
             int index = Array.IndexOf(labels, clickedLabel);
             clickedLabel.Text = currentIcons[index];
+            clickedLabel.BackColor = Color.Yellow; // Kui kaart on valitud, muudame selle kollaseks
 
             if (firstClicked == null)
             {
@@ -214,8 +230,8 @@ namespace KolmRakendust
             {
                 matchedPairs++;
                 points += 10;
-                firstClicked.BackColor = Color.LightGreen;
-                secondClicked.BackColor = Color.LightGreen;
+                firstClicked.BackColor = Color.LightGreen; // Õige paar - roheliseks
+                secondClicked.BackColor = Color.LightGreen; // Õige paar - roheliseks
                 ResetClickedLabels();
 
                 if (matchedPairs == currentIcons.Length / 2)
@@ -235,8 +251,16 @@ namespace KolmRakendust
         {
             flipTimer.Stop();
 
-            if (firstClicked != null) firstClicked.Text = "?";
-            if (secondClicked != null) secondClicked.Text = "?";
+            if (firstClicked != null)
+            {
+                firstClicked.Text = "";    
+                firstClicked.BackColor = Color.FromArgb(41, 128, 185);  // Kui kaarti ei ole õige paar, värvime siniseks
+            }
+            if (secondClicked != null)
+            {
+                secondClicked.Text = "";
+                secondClicked.BackColor = Color.FromArgb(41, 128, 185);  // Kui kaarti ei ole õige paar, värvime siniseks
+            }
             ResetClickedLabels();
         }
 
@@ -265,6 +289,7 @@ namespace KolmRakendust
             firstClicked = null;
             secondClicked = null;
         }
+
 
         public void Show()
         {

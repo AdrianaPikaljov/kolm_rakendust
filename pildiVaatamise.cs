@@ -27,21 +27,27 @@ namespace KolmRakendust
             // Põhinupud
             showButton = new Button { Text = "Vali pilt...", Location = new Point(150, 10), Size = new Size(100, 30) };
             showButton.Click += ShowButton_Click;
+            SetButtonStyle(showButton);
 
             clearButton = new Button { Text = "Tühjenda pilt", Location = new Point(260, 10), Size = new Size(100, 30) };
             clearButton.Click += ClearButton_Click;
+            SetButtonStyle(clearButton);
 
             backgroundButton = new Button { Text = "Taustavärv", Location = new Point(370, 10), Size = new Size(100, 30) };
             backgroundButton.Click += BackgroundButton_Click;
+            SetButtonStyle(backgroundButton);
 
             closeButton = new Button { Text = "Sulge", Location = new Point(480, 10), Size = new Size(100, 30) };
             closeButton.Click += CloseButton_Click;
+            SetButtonStyle(closeButton);
 
             stretchCheckBox = new CheckBox { Text = "Rasta pilt", Location = new Point(590, 15), Size = new Size(100, 20) };
             stretchCheckBox.CheckedChanged += StretchCheckBox_CheckedChanged;
+            
 
             rotateButton = new Button { Text = "Pööra pilt", Location = new Point(700, 10), Size = new Size(100, 30) };
             rotateButton.Click += RotateButton_Click;
+            SetButtonStyle(rotateButton);
 
             // --- Filtri CheckBoxid ---
             grayCheckBox = new CheckBox { Text = "Halltoon", Location = new Point(150, 510), Size = new Size(100, 20) };
@@ -54,6 +60,7 @@ namespace KolmRakendust
             brightCheckBox.CheckedChanged += FilterChanged;
             darkCheckBox.CheckedChanged += FilterChanged;
 
+
             // PictureBox
             pictureBox = new PictureBox
             {
@@ -62,6 +69,7 @@ namespace KolmRakendust
                 BorderStyle = BorderStyle.Fixed3D,
                 SizeMode = PictureBoxSizeMode.Zoom
             };
+
 
             // Lisa kõik komponendid parentile
             parent.Controls.Add(showButton);
@@ -78,6 +86,7 @@ namespace KolmRakendust
             parent.Controls.Add(darkCheckBox);
         }
 
+
         // --- Funktsioonid ---
         private void ShowButton_Click(object sender, EventArgs e)
         {
@@ -88,6 +97,7 @@ namespace KolmRakendust
                 UpdateImage();
             }
         }
+   
 
         private void ClearButton_Click(object sender, EventArgs e)
         {
@@ -120,6 +130,18 @@ namespace KolmRakendust
             if (originalImage == null) return;
             rotationAngle = (rotationAngle + 90) % 360;
             UpdateImage();
+        }
+
+        private void SetButtonStyle(Button button)
+        {
+            button.BackColor = Color.FromArgb(41, 128, 185); // Sinine värv
+            button.ForeColor = Color.White;
+            button.FlatStyle = FlatStyle.Flat;
+            button.FlatAppearance.BorderSize = 0;
+            button.Font = new Font("Arial", 12, FontStyle.Bold);
+
+            button.MouseEnter += (sender, e) => { button.BackColor = Color.FromArgb(34, 98, 145); }; // Hover efekt
+            button.MouseLeave += (sender, e) => { button.BackColor = Color.FromArgb(41, 128, 185); }; // Algvärv
         }
 
         // --- Rakendab filtrid ja pööramise ---
