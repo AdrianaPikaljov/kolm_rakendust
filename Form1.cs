@@ -10,6 +10,7 @@ namespace KolmRakendust
         Button btnPildiVaatamine;
         Button btnMatchingGame;
         Label lbl;
+        Button btnBack;
 
         private pildiVaatamise pildiVaataja;
         private MathQuiz mathQuiz;
@@ -75,6 +76,7 @@ namespace KolmRakendust
             pildiVaataja.Show();
             mathQuiz.Hide();
             matchingGame.Hide();
+
         }
 
         private void BtnMathQuiz_Click(object sender, EventArgs e)
@@ -112,6 +114,7 @@ namespace KolmRakendust
             pildiVaataja.Hide();
             mathQuiz.Hide();
             matchingGame.Hide();
+            
         }
 
         private void Lbl_MouseHover(object sender, EventArgs e)

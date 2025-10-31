@@ -47,7 +47,7 @@ namespace KolmRakendust
             // Add "Back" button
             btnBack = new Button();
             btnBack.Text = "Tagasi";
-            btnBack.Location = new Point(150, 500);  // Set position of the "Back" button
+            btnBack.Location = new Point(150, 650);  // Set position of the "Back" button
             btnBack.Click += BtnBack_Click;
             form.Controls.Add(btnBack);
             SetButtonStyle(btnBack);
@@ -67,7 +67,7 @@ namespace KolmRakendust
             // Tase 1
             level1Btn = new Button
             {
-                Text = "Tase 1",
+                Text = "Lihtne",
                 Location = new Point(370, 20),
                 Width = 80
             };
@@ -78,7 +78,7 @@ namespace KolmRakendust
             // Tase 2
             level2Btn = new Button
             {
-                Text = "Tase 2",
+                Text = "Keskmine",
                 Location = new Point(460, 20),
                 Width = 80
             };
@@ -89,7 +89,7 @@ namespace KolmRakendust
             // Tase 3
             level3Btn = new Button
             {
-                Text = "Tase 3",
+                Text = "Raske",
                 Location = new Point(550, 20),
                 Width = 80
             };
@@ -112,7 +112,8 @@ namespace KolmRakendust
         {
             // Hide current form (MatchingGame) and show main UI elements
             this.Hide();
-            ((Form1)form).ShowUIElements();  // Show main UI elements (buttons and label)
+            ((Form1)form).ShowUIElements(); // Show main UI elements (buttons and label)
+            
         }
 
         private void StartLevel(int level)
